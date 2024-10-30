@@ -127,6 +127,43 @@ Likely Workarounds Until the Release on PyPI:
    pip install https://github.com/mcfletch/pyopengl/archive/refs/tags/release-3.1.8.tar.gz
    ```
 
-For further information, refer to the related discussion on GitHub: `Issue #118 <https://github.com/mcfletch/pyopengl/issues/118#issuecomment-2342054510>`_.
 
+Issue:
+*******
+After migrating a macOS system from Intel (x64) architecture to an Apple Silicon (ARM, e.g., M1/M2/M3) architecture, 
+compatibility issues may arise when attempting to install `portaudio` using Homebrew, even after reinstalling 
+Homebrew for the ARM version. This can lead to `pyaudio` failing to import or errors with missing symbols 
+when running projects like PhysioLabXR.
+
+This issue occurs because the `portaudio` installation may default to the Intel version, even when the 
+ARM architecture is active, resulting in mismatches with the ARM-based Python and dependencies. Errors such as the following may be encountered:
+
+.. code-block:: text
+
+    ImportError: dlopen(/Users/username/anaconda3/lib/python3.11/site-packages/pyaudio/_portaudio.cpython-311-darwin.so, 0x0002): symbol not found in flat namespace '_PaMacCore_SetupChannelMap'
+
+
+Solution:
+*********
+To resolve this issue, the following steps ensure that `portaudio` is correctly installed for the ARM architecture 
+and that `pyaudio` is installed without compatibility issues.
+
+1. **Install `portaudio` for ARM**:
+   
+   Link Homebrew to the ARM version explicitly by setting the architecture. Run the following command 
+   to link `portaudio` specifically for ARM:
+
+   .. code-block:: bash
+
+      arch -arm64 /opt/homebrew/bin/brew link portaudio
+
+2. **Install `pyaudio` with Specific Build Options**:
+
+   Install `pyaudio` with build options explicitly pointing to the ARM-based `portaudio` libraries:
+
+   .. code-block:: bash
+
+      pip install --no-cache-dir --global-option='build_ext' --global-option='-I/opt/homebrew/Cellar/portaudio/19.7.0/include' --global-option='-L/opt/homebrew/Cellar/portaudio/19.7.0/lib' pyaudio
+
+These steps ensure compatibility between `pyaudio` and the ARM-based `portaudio` installation, allowing PhysioLabXR and similar applications to run without issues on macOS systems that have migrated from Intel to Apple Silicon architectures.
 
